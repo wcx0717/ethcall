@@ -56,7 +56,7 @@ async function all<T>(
   multicall: Multicall | null,
   calls: Call[],
   overrides?: CallOverrides,
-): Promise<T[]> {
+): Promise<(T | null)[]> {
   const contract = multicall
     ? new Contract(multicall.address, multicallAbi, provider)
     : null;
@@ -71,14 +71,19 @@ async function all<T>(
     ? await contract.aggregate(callRequests, overrides || {})
     : await callDeployless(provider, callRequests, overrides?.blockTag);
   const callCount = calls.length;
-  const callResult: T[] = [];
+  const callResult: (T | null)[] = [];
   for (let i = 0; i < callCount; i++) {
     const name = calls[i].name;
     const outputs = calls[i].outputs;
     const returnData = response.returnData[i];
-    const params = Abi.decode(name, outputs, returnData);
-    const result = outputs.length === 1 ? params[0] : params;
-    callResult.push(result);
+    try {
+      const params = Abi.decode(name, outputs, returnData);
+      const result = outputs.length === 1 ? params[0] : params;
+      callResult.push(result);
+    } catch {
+      callResult.push(null);
+    }
+    
   }
   return callResult;
 }
