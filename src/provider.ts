@@ -72,7 +72,7 @@ class Provider {
    * @param block Block number for this call
    * @returns List of fetched data
    */
-  async all<T>(calls: Call[], overrides?: CallOverrides): Promise<T[]> {
+  async all<T>(calls: Call[], overrides?: CallOverrides): Promise<(T | null)[]> {
     if (!this.#provider) {
       throw Error('Provider should be initialized before use.');
     }
